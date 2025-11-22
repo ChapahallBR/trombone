@@ -14,7 +14,7 @@ export default function ReportDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  
+
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ export default function ReportDetailScreen() {
     loadReport();
   }, [loadReport]);
 
-  
+
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -68,23 +68,28 @@ export default function ReportDetailScreen() {
   }
 
   return (
-    <ScrollView 
+    <ScrollView
       style={[styles.container, { backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background }]}
       contentContainerStyle={styles.content}
     >
-      {report.photo_url && (
+      {report.imageUrl && (
         <Image
-          source={{ uri: report.photo_url }}
+          source={{ uri: report.imageUrl }}
           style={styles.image}
           contentFit="cover"
         />
       )}
 
       <View style={[styles.card, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
-        <View style={styles.badges}>
-          <CategoryBadge category={report.category} />
-          <SeverityBadge severity={report.severity} />
-          <StatusBadge status={report.status} />
+        <View style={styles.statusContainer}>
+          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(report.status) }]}>
+            <Text style={styles.statusText}>{report.status.toUpperCase()}</Text>
+          </View>
+          {report.severity && (
+            <View style={[styles.severityBadge, { backgroundColor: getSeverityColor(report.severity) }]}>
+              <Text style={styles.severityText}>Prioridade {report.severity.toUpperCase()}</Text>
+            </View>
+          )}
         </View>
 
         <Text style={[styles.title, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
@@ -92,22 +97,22 @@ export default function ReportDetailScreen() {
         </Text>
 
         <View style={styles.info}>
-          <MaterialIcons 
-            name="access-time" 
-            size={16} 
-            color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary} 
+          <MaterialIcons
+            name="access-time"
+            size={16}
+            color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary}
           />
           <Text style={[styles.infoText, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-            {formatDate(report.created_at)}
+            {formatDate(report.createdAt)}
           </Text>
         </View>
 
         {report.latitude && report.longitude && (
           <View style={styles.info}>
-            <MaterialIcons 
-              name="location-on" 
-              size={16} 
-              color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary} 
+            <MaterialIcons
+              name="location-on"
+              size={16}
+              color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary}
             />
             <Text style={[styles.infoText, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
               {report.latitude.toFixed(6)}, {report.longitude.toFixed(6)}
@@ -115,15 +120,11 @@ export default function ReportDetailScreen() {
           </View>
         )}
 
-        {report.is_anonymous && (
-          <View style={styles.info}>
-            <MaterialIcons 
-              name="visibility-off" 
-              size={16} 
-              color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary} 
-            />
-            <Text style={[styles.infoText, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-              Reporte anônimo
+        {report.isAnonymous && (
+          <View style={styles.anonymousContainer}>
+            <MaterialIcons name="visibility-off" size={16} color={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary} />
+            <Text style={[styles.anonymousText, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
+              Reporte Anônimo
             </Text>
           </View>
         )}
@@ -198,5 +199,39 @@ const styles = StyleSheet.create({
   description: {
     ...theme.typography.body,
     lineHeight: 24,
+  },
+  anonymousContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.xs,
+    marginTop: theme.spacing.xs,
+  },
+  anonymousText: {
+    ...theme.typography.bodySmall,
+  },
+  statusContainer: {
+    flexDirection: 'row',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  statusBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  statusText: {
+    ...theme.typography.caption,
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  severityBadge: {
+    paddingHorizontal: theme.spacing.sm,
+    paddingVertical: theme.spacing.xs,
+    borderRadius: theme.borderRadius.sm,
+  },
+  severityText: {
+    ...theme.typography.caption,
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

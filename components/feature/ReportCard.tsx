@@ -46,15 +46,15 @@ export function ReportCard({ report }: ReportCardProps) {
       onPress={handlePress}
       activeOpacity={0.7}
     >
-      {report.photo_url && (
+      {report.imageUrl && (
         <Image
-          source={{ uri: report.photo_url }}
+          source={{ uri: report.imageUrl }}
           style={styles.image}
           contentFit="cover"
           transition={200}
         />
       )}
-      
+
       <View style={styles.content}>
         <View style={styles.header}>
           <CategoryBadge category={report.category} size="small" />

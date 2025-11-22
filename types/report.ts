@@ -5,20 +5,19 @@ export type UserRole = 'citizen' | 'operator' | 'manager' | 'admin';
 
 export interface Report {
   id: string;
-  user_id?: string;
+  userId: string;
   title: string;
   description: string;
   category: ReportCategory;
-  severity: ReportSeverity;
-  is_anonymous: boolean;
-  photo_url?: string;
-  latitude?: number;
-  longitude?: number;
-  status: ReportStatus;
-  assigned_to?: string;
-  resolved_at?: string;
-  created_at: string;
-  updated_at: string;
+  severity?: ReportSeverity; // Made optional as it's not in Prisma schema explicitly, or need to check if backend handles it
+  isAnonymous?: boolean; // Changed to camelCase
+  imageUrl?: string; // Changed from photo_url
+  latitude: number;
+  longitude: number;
+  address?: string;
+  status: string; // Changed to string to match Prisma, or keep enum if backend returns enum string
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateReportInput {

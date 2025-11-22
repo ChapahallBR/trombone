@@ -121,18 +121,18 @@ export default function NewReportScreen() {
         photoUrl = data ?? undefined;
       }
 
-      const { success, error } = await createReport({
+      const result = await createReport({
         title: title.trim(),
         description: description.trim(),
-        category,
+        category, // Assuming 'selectedCategory' and 'selectedSeverity' are typos and should be 'category' and 'severity' from state
         severity,
-        is_anonymous: isAnonymous,
-        photo_url: photoUrl,
-        latitude: location?.latitude,
-        longitude: location?.longitude,
+        isAnonymous: isAnonymous,
+        imageUrl: photoUrl,
+        latitude: location?.latitude, // Keep optional chaining as location can be null
+        longitude: location?.longitude, // Keep optional chaining as location can be null
       });
 
-      if (success) {
+      if (result.success) {
         showAlert('Sucesso!', 'Reporte enviado com sucesso');
         setTitle('');
         setDescription('');
@@ -153,13 +153,13 @@ export default function NewReportScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={styles.container}
     >
       <LinearGradient
-        colors={isDark 
-          ? [theme.colors.primaryDark, theme.colors.backgroundDark] 
+        colors={isDark
+          ? [theme.colors.primaryDark, theme.colors.backgroundDark]
           : [theme.colors.primary, theme.colors.secondary]
         }
         style={[styles.header, { paddingTop: insets.top }]}
@@ -180,10 +180,10 @@ export default function NewReportScreen() {
                 style={[
                   styles.categoryButton,
                   category === cat.value && styles.categoryButtonActive,
-                  { 
-                    backgroundColor: category === cat.value 
-                      ? theme.colors.primary 
-                      : isDark ? theme.colors.backgroundDark : theme.colors.background 
+                  {
+                    backgroundColor: category === cat.value
+                      ? theme.colors.primary
+                      : isDark ? theme.colors.backgroundDark : theme.colors.background
                   }
                 ]}
                 onPress={() => setCategory(cat.value)}
@@ -213,10 +213,10 @@ export default function NewReportScreen() {
                 style={[
                   styles.categoryButton,
                   severity === sev.value && styles.categoryButtonActive,
-                  { 
-                    backgroundColor: severity === sev.value 
-                      ? theme.colors[sev.value] 
-                      : isDark ? theme.colors.backgroundDark : theme.colors.background 
+                  {
+                    backgroundColor: severity === sev.value
+                      ? theme.colors[sev.value]
+                      : isDark ? theme.colors.backgroundDark : theme.colors.background
                   }
                 ]}
                 onPress={() => setSeverity(sev.value)}
@@ -238,7 +238,7 @@ export default function NewReportScreen() {
         </View>
 
         <View style={[styles.card, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.anonymousToggle}
             onPress={() => setIsAnonymous(!isAnonymous)}
             activeOpacity={0.7}
@@ -268,7 +268,7 @@ export default function NewReportScreen() {
           <TextInput
             style={[
               styles.input,
-              { 
+              {
                 backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background,
                 color: isDark ? theme.colors.textDark : theme.colors.text,
               }
@@ -285,7 +285,7 @@ export default function NewReportScreen() {
           <TextInput
             style={[
               styles.textArea,
-              { 
+              {
                 backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background,
                 color: isDark ? theme.colors.textDark : theme.colors.text,
               }
@@ -324,14 +324,14 @@ export default function NewReportScreen() {
 
         <View style={[styles.card, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
           <Text style={[styles.label, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>Localização</Text>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.locationButton, location && styles.locationButtonActive]}
             onPress={getLocation}
           >
-            <MaterialIcons 
-              name={location ? "check-circle" : "location-on"} 
-              size={24} 
-              color={location ? theme.colors.success : theme.colors.primary} 
+            <MaterialIcons
+              name={location ? "check-circle" : "location-on"}
+              size={24}
+              color={location ? theme.colors.success : theme.colors.primary}
             />
             <Text style={[
               styles.locationButtonText,

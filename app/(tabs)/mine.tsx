@@ -21,7 +21,7 @@ export default function MyReportsScreen() {
   const [filterStatus, setFilterStatus] = useState<ReportStatus | 'all'>('all');
 
   // Filter reports by current user
-  const myReports = reports.filter(r => r.user_id === user?.id);
+  const myReports = reports.filter(r => r.userId === user?.id);
 
   // Filter by status
   const filteredReports = filterStatus === 'all'

@@ -5,6 +5,10 @@ export interface AuthUser {
   id: string;
   email: string;
   username?: string;
+  user_metadata?: {
+    full_name?: string;
+    [key: string]: any;
+  };
   created_at?: string;
   updated_at?: string;
 }
@@ -21,10 +25,10 @@ export interface AuthResult extends BaseResult {
 }
 
 // Logout operation result
-export interface LogoutResult extends BaseResult {}
+export interface LogoutResult extends BaseResult { }
 
 // Send OTP result
-export interface SendOTPResult extends BaseResult {}
+export interface SendOTPResult extends BaseResult { }
 
 // Password registration result
 export interface SignUpResult extends BaseResult {

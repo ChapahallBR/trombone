@@ -13,7 +13,10 @@ interface ReportsContextType {
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);
 
+import { useAuth } from '@/template';
+
 export function ReportsProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,13 +25,13 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     const { data, error: err } = await reportService.getReports();
-    
+
     if (err) {
       setError(err);
     } else if (data) {
       setReports(data);
     }
-    
+
     setLoading(false);
   };
 
@@ -41,16 +44,26 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
   };
 
   const createReport = async (input: CreateReportInput): Promise<{ success: boolean; error: string | null }> => {
-    const { data, error: err } = await reportService.createReport(input);
-    
+    if (!user?.id) {
+      return { success: false, error: 'Usuário não autenticado' };
+    }
+
+    const payload = {
+      ...input,
+      userEmail: user.email,
+      userName: user.user_metadata?.full_name || user.email?.split('@')[0]
+    };
+
+    const { data, error: err } = await reportService.createReport(payload, user.id);
+
     if (err) {
       return { success: false, error: err };
     }
-    
+
     if (data) {
       setReports(prev => [data, ...prev]);
     }
-    
+
     return { success: true, error: null };
   };
 

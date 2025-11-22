@@ -7,7 +7,20 @@ const prisma = new PrismaClient();
 // Create Report
 router.post('/', async (req, res) => {
     try {
-        const { title, description, latitude, longitude, category, userId, imageUrl, address } = req.body;
+        const { title, description, latitude, longitude, category, userId, imageUrl, address, userEmail, userName } = req.body;
+
+        // Ensure user exists (Sync with Supabase)
+        if (userId && userEmail) {
+            await prisma.user.upsert({
+                where: { id: userId },
+                update: { email: userEmail, fullName: userName },
+                create: {
+                    id: userId,
+                    email: userEmail,
+                    fullName: userName
+                }
+            });
+        }
 
         const report = await prisma.report.create({
             data: {
@@ -25,6 +38,7 @@ router.post('/', async (req, res) => {
 
         res.status(201).json(report);
     } catch (error) {
+        console.error('Error creating report:', error);
         res.status(500).json({ error: 'Error creating report' });
     }
 });
