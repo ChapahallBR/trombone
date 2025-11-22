@@ -143,10 +143,13 @@ export default function NewReportScreen() {
         setLocation(null);
         router.push('/(tabs)');
       } else {
-        showAlert('Erro', error || 'Falha ao enviar reporte');
+        showAlert('Erro', result.error || 'Falha ao enviar reporte');
       }
     } catch (err) {
-      showAlert('Erro', 'Ocorreu um erro inesperado');
+      console.error('Error submitting report:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Ocorreu um erro inesperado';
+      const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'default';
+      showAlert('Erro', `${errorMessage}\nAPI: ${apiUrl}`);
     } finally {
       setLoading(false);
     }

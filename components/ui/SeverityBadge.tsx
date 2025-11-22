@@ -28,15 +28,15 @@ const severityConfig = {
 };
 
 export function SeverityBadge({ severity, size = 'medium' }: SeverityBadgeProps) {
-  const config = severityConfig[severity];
+  const config = severityConfig[severity] || severityConfig.media; // Fallback to media if invalid
   const isSmall = size === 'small';
 
   return (
     <View style={[styles.container, { backgroundColor: `${config.color}20` }]}>
-      <MaterialIcons 
-        name={config.icon} 
-        size={isSmall ? 14 : 16} 
-        color={config.color} 
+      <MaterialIcons
+        name={config.icon}
+        size={isSmall ? 14 : 16}
+        color={config.color}
       />
       <Text style={[styles.text, { color: config.color, fontSize: isSmall ? 11 : 13 }]}>
         {config.label}
