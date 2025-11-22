@@ -35,7 +35,31 @@ export default function ReportDetailScreen() {
     loadReport();
   }, [loadReport]);
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'pendente':
+        return theme.colors.warning;
+      case 'em_analise':
+        return theme.colors.info;
+      case 'resolvido':
+        return theme.colors.success;
+      default:
+        return theme.colors.textSecondary;
+    }
+  };
 
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'baixa':
+        return theme.colors.baixa;
+      case 'media':
+        return theme.colors.media;
+      case 'alta':
+        return theme.colors.alta;
+      default:
+        return theme.colors.textSecondary;
+    }
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

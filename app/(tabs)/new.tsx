@@ -106,6 +106,11 @@ export default function NewReportScreen() {
       return;
     }
 
+    if (!location) {
+      showAlert('Atenção', 'Por favor, adicione a localização do problema');
+      return;
+    }
+
     setLoading(true);
 
     try {
