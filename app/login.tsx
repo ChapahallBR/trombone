@@ -15,37 +15,51 @@ export default function LoginScreen() {
     const [fullName, setFullName] = useState('');
 
     const handleAuth = async () => {
+        console.log('[Login] handleAuth called', { isLogin, email, password, fullName, cpf });
+
         if (!email || !password) {
+            console.log('[Login] Missing email or password');
             Alert.alert('Erro', 'Por favor, preencha todos os campos.');
             return;
         }
 
         try {
             if (isLogin) {
+                console.log('[Login] Attempting login...');
                 const { error } = await signIn(email, password);
                 if (error) {
+                    console.log('[Login] Login error:', error);
                     Alert.alert('Erro', error);
                     return;
                 }
+                console.log('[Login] Login successful, redirecting...');
                 router.replace('/(tabs)');
             } else {
+                console.log('[Login] Attempting signup...');
                 if (!fullName) {
+                    console.log('[Login] Missing fullName');
                     Alert.alert('Erro', 'Por favor, preencha seu nome completo.');
                     return;
                 }
+                console.log('[Login] Validating CPF:', cpf);
                 if (!validateCPF(cpf)) {
+                    console.log('[Login] CPF validation failed');
                     Alert.alert('Erro', 'CPF inválido.');
                     return;
                 }
+                console.log('[Login] CPF valid, calling signUp...');
                 const { error } = await signUp(email, password, fullName, cpf);
                 if (error) {
+                    console.log('[Login] Signup error:', error);
                     Alert.alert('Erro', error);
                     return;
                 }
+                console.log('[Login] Signup successful!');
                 Alert.alert('Sucesso', 'Conta criada com sucesso!');
                 router.replace('/(tabs)');
             }
         } catch (error: any) {
+            console.error('[Login] Unexpected error:', error);
             Alert.alert('Erro', error.message || 'Ocorreu um erro.');
         }
     };

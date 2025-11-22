@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Tester - OnSpace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .test-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        .api-url {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 OnSpace API Tester</h1>
+        <p class="subtitle">Test your authentication and database endpoints</p>
+
+        <div class="api-url">
+            <strong>API URL:</strong> https://onspace-api.onrender.com
+        </div>
+
+        <!-- Health Check -->
+        <div class="test-section">
+            <h2>1️⃣ Health Check</h2>
+            <button onclick="testHealth()">Test API Health</button>
+            <div id="health-result"></div>
+        </div>
+
+        <!-- Sign Up -->
+        <div class="test-section">
+            <h2>2️⃣ Sign Up (POST)</h2>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="signup-email" value="browser@test.com">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="signup-password" value="password123">
+            </div>
+            <div class="form-group">
+                <label>Full Name:</label>
+                <input type="text" id="signup-name" value="Browser Tester">
+            </div>
+            <div class="form-group">
+                <label>CPF:</label>
+                <input type="text" id="signup-cpf" value="12345678909">
+            </div>
+            <button onclick="testSignup()">Sign Up</button>
+            <div id="signup-result"></div>
+        </div>
+
+        <!-- Login -->
+        <div class="test-section">
+            <h2>3️⃣ Login (POST)</h2>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="login-email" value="browser@test.com">
+            </div>
+            <div class="form-group">
+                <label>Password:</label>
+                <input type="password" id="login-password" value="password123">
+            </div>
+            <button onclick="testLogin()">Login</button>
+            <div id="login-result"></div>
+        </div>
+
+        <!-- Get Reports -->
+        <div class="test-section">
+            <h2>4️⃣ Get Reports (GET)</h2>
+            <button onclick="testGetReports()">Get All Reports</button>
+            <div id="reports-result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://onspace-api.onrender.com';
+
+        function showResult(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${isError ? 'error' : 'success'}`;
+            element.textContent = JSON.stringify(data, null, 2);
+        }
+
+        function showInfo(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.className = 'result info';
+            element.textContent = message;
+        }
+
+        async function testHealth() {
+            showInfo('health-result', 'Testing...');
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+                showResult('health-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                });
+            } catch (error) {
+                showResult('health-result', {
+                    error: error.message
+                }, true);
+            }
+        }
+
+        async function testSignup() {
+            showInfo('signup-result', 'Signing up...');
+            try {
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const fullName = document.getElementById('signup-name').value;
+                const cpf = document.getElementById('signup-cpf').value;
+
+                const response = await fetch(`${API_URL}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, fullName, cpf })
+                });
+
+                const data = await response.json();
+                showResult('signup-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                }, !response.ok);
+
+                if (response.ok) {
+                    // Auto-fill login
+                    document.getElementById('login-email').value = email;
+                    document.getElementById('login-password').value = password;
+                }
+            } catch (error) {
+                showResult('signup-result', {
+                    error: error.message
+                }, true);
+            }
+        }
+
+        async function testLogin() {
+            showInfo('login-result', 'Logging in...');
+            try {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                showResult('login-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    data: data
+                }, !response.ok);
+            } catch (error) {
+                showResult('login-result', {
+                    error: error.message
+                }, true);
+            }
+        }
+
+        async function testGetReports() {
+            showInfo('reports-result', 'Fetching reports...');
+            try {
+                const response = await fetch(`${API_URL}/api/reports`);
+                const data = await response.json();
+                showResult('reports-result', {
+                    status: response.status,
+                    statusText: response.statusText,
+                    count: Array.isArray(data) ? data.length : 'N/A',
+                    data: data
+                }, !response.ok);
+            } catch (error) {
+                showResult('reports-result', {
+                    error: error.message
+                }, true);
+            }
+        }
+
+        // Auto-test health on load
+        window.onload = () => {
+            testHealth();
+        };
+    </script>
+</body>
+
+</html>
