@@ -29,4 +29,5 @@ app.use('/api/reports', reportRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+    console.log('Deployment trigger: v1.0.1');
 });
