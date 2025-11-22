@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 import { useReports } from '@/hooks/useReports';
-import { useAuth } from '@/template';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReportCategory, ReportSeverity } from '@/types/report';
 
 const { width } = Dimensions.get('window');
@@ -36,8 +36,8 @@ export default function AdminDashboardScreen() {
     },
   };
 
-  const resolutionRate = stats.total > 0 
-    ? Math.round((stats.resolvido / stats.total) * 100) 
+  const resolutionRate = stats.total > 0
+    ? Math.round((stats.resolvido / stats.total) * 100)
     : 0;
 
   if (!user) {
@@ -56,8 +56,8 @@ export default function AdminDashboardScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={isDark 
-          ? [theme.colors.primaryDark, theme.colors.backgroundDark] 
+        colors={isDark
+          ? [theme.colors.primaryDark, theme.colors.backgroundDark]
           : [theme.colors.primary, theme.colors.secondary]
         }
         style={[styles.header, { paddingTop: insets.top }]}
@@ -68,7 +68,7 @@ export default function AdminDashboardScreen() {
         </View>
       </LinearGradient>
 
-      <ScrollView 
+      <ScrollView
         style={[styles.content, { backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background }]}
         contentContainerStyle={styles.scrollContent}
       >

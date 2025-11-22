@@ -13,7 +13,7 @@ interface ReportsContextType {
 
 export const ReportsContext = createContext<ReportsContextType | undefined>(undefined);
 
-import { useAuth } from '@/template';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function ReportsProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -51,7 +51,7 @@ export function ReportsProvider({ children }: { children: ReactNode }) {
     const payload = {
       ...input,
       userEmail: user.email,
-      userName: user.user_metadata?.full_name || user.email?.split('@')[0]
+      userName: user.fullName || user.email?.split('@')[0]
     };
 
     const { data, error: err } = await reportService.createReport(payload, user.id);

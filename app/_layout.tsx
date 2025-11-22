@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
-import { AuthProvider, AlertProvider } from '@/template';
+import { AlertProvider } from '@/template';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { ReportsProvider } from '@/contexts/ReportsContext';
 
 export default function RootLayout() {
@@ -9,13 +10,13 @@ export default function RootLayout() {
         <ReportsProvider>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen 
-              name="report/[id]" 
-              options={{ 
+            <Stack.Screen
+              name="report/[id]"
+              options={{
                 headerShown: true,
                 title: 'Detalhes do Reporte',
                 headerBackTitle: 'Voltar',
-              }} 
+              }}
             />
           </Stack>
         </ReportsProvider>

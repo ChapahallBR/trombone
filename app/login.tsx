@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useAuth } from '@/template';
+import { useAuth } from '@/contexts/AuthContext';
 import { validateCPF, formatCPF } from '@/utils/cpf';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen() {
     const router = useRouter();
-    const { signInWithPassword, signUpWithPassword, signInWithGoogle, loading } = useAuth();
+    const { signIn, signUp, loading } = useAuth();
     const [isLogin, setIsLogin] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [cpf, setCpf] = useState('');
     const [fullName, setFullName] = useState('');
-    const [authLoading, setAuthLoading] = useState(false);
 
     const handleAuth = async () => {
         if (!email || !password) {
@@ -21,38 +20,33 @@ export default function LoginScreen() {
             return;
         }
 
-        setAuthLoading(true);
         try {
             if (isLogin) {
-                const { error } = await signInWithPassword(email, password);
-                if (error) throw new Error(error);
-            } else {
-                if (!validateCPF(cpf)) {
-                    Alert.alert('Erro', 'CPF inválido.');
-                    setAuthLoading(false);
+                const { error } = await signIn(email, password);
+                if (error) {
+                    Alert.alert('Erro', error);
                     return;
                 }
-                const { error } = await signUpWithPassword(email, password, { cpf, full_name: fullName });
-                if (error) throw new Error(error);
-                Alert.alert('Sucesso', 'Conta criada com sucesso! Verifique seu email.');
-                setIsLogin(true);
+                router.replace('/(tabs)');
+            } else {
+                if (!fullName) {
+                    Alert.alert('Erro', 'Por favor, preencha seu nome completo.');
+                    return;
+                }
+                if (!validateCPF(cpf)) {
+                    Alert.alert('Erro', 'CPF inválido.');
+                    return;
+                }
+                const { error } = await signUp(email, password, fullName, cpf);
+                if (error) {
+                    Alert.alert('Erro', error);
+                    return;
+                }
+                Alert.alert('Sucesso', 'Conta criada com sucesso!');
+                router.replace('/(tabs)');
             }
         } catch (error: any) {
             Alert.alert('Erro', error.message || 'Ocorreu um erro.');
-        } finally {
-            setAuthLoading(false);
-        }
-    };
-
-    const handleGoogleLogin = async () => {
-        setAuthLoading(true);
-        try {
-            const { error } = await signInWithGoogle();
-            if (error) throw new Error(error);
-        } catch (error: any) {
-            Alert.alert('Erro', error.message || 'Falha no login com Google.');
-        } finally {
-            setAuthLoading(false);
         }
     };
 
@@ -101,22 +95,13 @@ export default function LoginScreen() {
                 <TouchableOpacity
                     style={styles.button}
                     onPress={handleAuth}
-                    disabled={authLoading || loading}
+                    disabled={loading}
                 >
-                    {authLoading ? (
+                    {loading ? (
                         <ActivityIndicator color="#fff" />
                     ) : (
                         <Text style={styles.buttonText}>{isLogin ? 'Entrar' : 'Cadastrar'}</Text>
                     )}
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[styles.button, styles.googleButton]}
-                    onPress={handleGoogleLogin}
-                    disabled={authLoading || loading}
-                >
-                    <Ionicons name="logo-google" size={20} color="#fff" style={{ marginRight: 10 }} />
-                    <Text style={styles.buttonText}>Entrar com Google</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>

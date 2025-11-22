@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 import { useReports } from '@/hooks/useReports';
-import { useAuth } from '@/template';
+import { useAuth } from '@/contexts/AuthContext';
 import { ReportCard } from '@/components/feature/ReportCard';
 import { ReportStatus } from '@/types/report';
 

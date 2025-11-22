@@ -1,6 +1,7 @@
 import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://onspace-api.onrender.com';
+export const API_URL = process.env.EXPO_PUBLIC_API_URL || 'https://onspace-api.onrender.com';
 
 const api = axios.create({
     baseURL: API_URL,
@@ -9,11 +10,13 @@ const api = axios.create({
     },
 });
 
-// Add a request interceptor to attach the token if we decide to use custom auth later
-// For now, we are just using the public API or we can pass the Supabase token if needed for verification
+// Add auth token to requests
 api.interceptors.request.use(
     async (config) => {
-        // Placeholder for token logic if we implement JWT verification on backend using Supabase tokens
+        const token = await AsyncStorage.getItem('@auth_token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
         return config;
     },
     (error) => {
