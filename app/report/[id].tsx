@@ -154,6 +154,36 @@ export default function ReportDetailScreen() {
         )}
       </View>
 
+      {(report.department || report.adminNotes) && (
+        <View style={[styles.card, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
+            Atualizações do Admin
+          </Text>
+
+          {report.department && (
+            <View style={styles.adminRow}>
+              <Text style={[styles.adminLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
+                Departamento Responsável:
+              </Text>
+              <Text style={[styles.adminValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
+                {report.department.replace('_', ' ').toUpperCase()}
+              </Text>
+            </View>
+          )}
+
+          {report.adminNotes && (
+            <View style={styles.adminRow}>
+              <Text style={[styles.adminLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
+                Notas:
+              </Text>
+              <Text style={[styles.adminValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
+                {report.adminNotes}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <View style={[styles.card, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
         <Text style={[styles.sectionTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
           Descrição
@@ -257,5 +287,16 @@ const styles = StyleSheet.create({
     ...theme.typography.caption,
     color: '#fff',
     fontWeight: 'bold',
+  },
+  adminRow: {
+    marginBottom: theme.spacing.sm,
+  },
+  adminLabel: {
+    ...theme.typography.caption,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  adminValue: {
+    ...theme.typography.body,
   },
 });
