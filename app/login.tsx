@@ -14,12 +14,14 @@ export default function LoginScreen() {
     const [cpf, setCpf] = useState('');
     const [fullName, setFullName] = useState('');
 
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
     const handleAuth = async () => {
+        setErrorMessage(null);
         console.log('[Login] handleAuth called', { isLogin, email, password, fullName, cpf });
 
         if (!email || !password) {
-            console.log('[Login] Missing email or password');
-            Alert.alert('Erro', 'Por favor, preencha todos os campos.');
+            setErrorMessage('Por favor, preencha todos os campos.');
             return;
         }
 
@@ -29,7 +31,8 @@ export default function LoginScreen() {
                 const { error } = await signIn(email, password);
                 if (error) {
                     console.log('[Login] Login error:', error);
-                    Alert.alert('Erro', error);
+                    setErrorMessage(error);
+                    Alert.alert('Erro de Login', error);
                     return;
                 }
                 console.log('[Login] Login successful, redirecting...');
@@ -37,21 +40,20 @@ export default function LoginScreen() {
             } else {
                 console.log('[Login] Attempting signup...');
                 if (!fullName) {
-                    console.log('[Login] Missing fullName');
-                    Alert.alert('Erro', 'Por favor, preencha seu nome completo.');
+                    setErrorMessage('Por favor, preencha seu nome completo.');
                     return;
                 }
                 console.log('[Login] Validating CPF:', cpf);
                 if (!validateCPF(cpf)) {
-                    console.log('[Login] CPF validation failed');
-                    Alert.alert('Erro', 'CPF inválido.');
+                    setErrorMessage('CPF inválido. Verifique os números.');
                     return;
                 }
                 console.log('[Login] CPF valid, calling signUp...');
                 const { error } = await signUp(email, password, fullName, cpf);
                 if (error) {
                     console.log('[Login] Signup error:', error);
-                    Alert.alert('Erro', error);
+                    setErrorMessage(error);
+                    Alert.alert('Erro de Cadastro', error);
                     return;
                 }
                 console.log('[Login] Signup successful!');
@@ -60,7 +62,9 @@ export default function LoginScreen() {
             }
         } catch (error: any) {
             console.error('[Login] Unexpected error:', error);
-            Alert.alert('Erro', error.message || 'Ocorreu um erro.');
+            const msg = error.message || 'Ocorreu um erro inesperado.';
+            setErrorMessage(msg);
+            Alert.alert('Erro', msg);
         }
     };
 
@@ -69,45 +73,56 @@ export default function LoginScreen() {
             <View style={styles.card}>
                 <Text style={styles.title}>{isLogin ? 'Bem-vindo' : 'Criar Conta'}</Text>
 
+                {errorMessage && (
+                    <View style={styles.errorContainer}>
+                        <Ionicons name="alert-circle" size={20} color="#fff" />
+                        <Text style={styles.errorText}>{errorMessage}</Text>
+                    </View>
+                )}
+
                 {!isLogin && (
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, loading && styles.inputDisabled]}
                         placeholder="Nome Completo"
                         value={fullName}
                         onChangeText={setFullName}
+                        editable={!loading}
                     />
                 )}
 
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, loading && styles.inputDisabled]}
                     placeholder="Email"
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
                     keyboardType="email-address"
+                    editable={!loading}
                 />
 
                 {!isLogin && (
                     <TextInput
-                        style={styles.input}
+                        style={[styles.input, loading && styles.inputDisabled]}
                         placeholder="CPF"
                         value={cpf}
                         onChangeText={(text) => setCpf(formatCPF(text))}
                         keyboardType="numeric"
                         maxLength={14}
+                        editable={!loading}
                     />
                 )}
 
                 <TextInput
-                    style={styles.input}
+                    style={[styles.input, loading && styles.inputDisabled]}
                     placeholder="Senha"
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
+                    editable={!loading}
                 />
 
                 <TouchableOpacity
-                    style={styles.button}
+                    style={[styles.button, loading && styles.buttonDisabled]}
                     onPress={handleAuth}
                     disabled={loading}
                 >
@@ -118,7 +133,14 @@ export default function LoginScreen() {
                     )}
                 </TouchableOpacity>
 
-                <TouchableOpacity onPress={() => setIsLogin(!isLogin)} style={styles.switchButton}>
+                <TouchableOpacity
+                    onPress={() => {
+                        setIsLogin(!isLogin);
+                        setErrorMessage(null);
+                    }}
+                    style={styles.switchButton}
+                    disabled={loading}
+                >
                     <Text style={styles.switchText}>
                         {isLogin ? 'Não tem uma conta? Cadastre-se' : 'Já tem uma conta? Entre'}
                     </Text>
@@ -152,6 +174,21 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#333',
     },
+    errorContainer: {
+        backgroundColor: '#FF3B30',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 15,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    errorText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '600',
+        flex: 1,
+    },
     input: {
         backgroundColor: '#f9f9f9',
         padding: 15,
@@ -160,12 +197,19 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#eee',
     },
+    inputDisabled: {
+        opacity: 0.7,
+        backgroundColor: '#f0f0f0',
+    },
     button: {
         backgroundColor: '#007AFF',
         padding: 15,
         borderRadius: 8,
         alignItems: 'center',
         marginBottom: 10,
+    },
+    buttonDisabled: {
+        opacity: 0.7,
     },
     googleButton: {
         backgroundColor: '#DB4437',
