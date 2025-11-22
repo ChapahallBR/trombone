@@ -39,6 +39,11 @@ export const reportService = {
         const response = await api.get(`/api/reports/user/${userId}`);
         return response.data;
     },
+
+    updateReport: async (id: string, data: any) => {
+        const response = await api.put(`/api/reports/${id}`, data);
+        return response.data;
+    },
 };
 
 export default api;

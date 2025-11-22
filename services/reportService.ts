@@ -41,4 +41,13 @@ export const reportService = {
       return { data: null, error: err instanceof Error ? err.message : 'Erro ao fazer upload da foto' };
     }
   },
+
+  async updateReport(id: string, data: Partial<Report>): Promise<{ data: Report | null; error: string | null }> {
+    try {
+      const result = await apiService.updateReport(id, data);
+      return { data: result, error: null };
+    } catch (err) {
+      return { data: null, error: err instanceof Error ? err.message : 'Erro ao atualizar reporte' };
+    }
+  },
 };

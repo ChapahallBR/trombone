@@ -70,4 +70,26 @@ router.get('/user/:userId', async (req, res) => {
     }
 });
 
+// Update Report (Admin)
+router.put('/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, department, adminNotes } = req.body;
+
+        const report = await prisma.report.update({
+            where: { id },
+            data: {
+                status,
+                department,
+                adminNotes
+            }
+        });
+
+        res.json(report);
+    } catch (error) {
+        console.error('Error updating report:', error);
+        res.status(500).json({ error: 'Error updating report' });
+    }
+});
+
 export default router;

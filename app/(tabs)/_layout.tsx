@@ -3,11 +3,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '@/constants/theme';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function TabsLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
+  const { user } = useAuth();
 
   return (
     <Tabs
@@ -41,6 +43,7 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: 'Feed',
+          href: null, // Disable feed momentarily
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="feed" size={size} color={color} />
           ),
@@ -77,6 +80,7 @@ export default function TabsLayout() {
         name="admin"
         options={{
           title: 'Admin',
+          href: user?.role === 'admin' ? '/admin' : null,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="admin-panel-settings" size={size} color={color} />
           ),

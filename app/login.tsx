@@ -33,7 +33,7 @@ export default function LoginScreen() {
                     return;
                 }
                 console.log('[Login] Login successful, redirecting...');
-                router.replace('/(tabs)');
+                router.replace('/(tabs)/mine');
             } else {
                 console.log('[Login] Attempting signup...');
                 if (!fullName) {
@@ -56,7 +56,7 @@ export default function LoginScreen() {
                 }
                 console.log('[Login] Signup successful!');
                 Alert.alert('Sucesso', 'Conta criada com sucesso!');
-                router.replace('/(tabs)');
+                router.replace('/(tabs)/mine');
             }
         } catch (error: any) {
             console.error('[Login] Unexpected error:', error);

@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, useColorScheme, Dimensions, Modal, TextInput, ActivityIndicator, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { theme } from '@/constants/theme';
 import { useReports } from '@/hooks/useReports';
 import { useAuth } from '@/contexts/AuthContext';
-import { ReportCategory, ReportSeverity } from '@/types/report';
+import { Report, ReportCategory, ReportSeverity } from '@/types/report';
+import { reportService } from '@/services/reportService';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - theme.spacing.md * 3) / 2;
 
 export default function AdminDashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
-  const { reports } = useReports();
+  const { reports, refreshReports } = useReports();
   const { user } = useAuth();
+
+  const [selectedReport, setSelectedReport] = useState<Report | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [editStatus, setEditStatus] = useState('');
+  const [editDepartment, setEditDepartment] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [saving, setSaving] = useState(false);
 
   // Calculate statistics
   const stats = {
@@ -40,7 +47,40 @@ export default function AdminDashboardScreen() {
     ? Math.round((stats.resolvido / stats.total) * 100)
     : 0;
 
-  if (!user) {
+  const handleEditReport = (report: Report) => {
+    setSelectedReport(report);
+    setEditStatus(report.status);
+    setEditDepartment(report.department || '');
+    setEditNotes(report.adminNotes || '');
+    setModalVisible(true);
+  };
+
+  const handleSaveReport = async () => {
+    if (!selectedReport) return;
+
+    setSaving(true);
+    try {
+      const { error } = await reportService.updateReport(selectedReport.id, {
+        status: editStatus,
+        department: editDepartment,
+        adminNotes: editNotes
+      });
+
+      if (error) {
+        Alert.alert('Erro', error);
+      } else {
+        Alert.alert('Sucesso', 'Reporte atualizado com sucesso');
+        setModalVisible(false);
+        refreshReports();
+      }
+    } catch (error) {
+      Alert.alert('Erro', 'Falha ao atualizar reporte');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (!user || user.role !== 'admin') {
     return (
       <View style={[styles.container, { backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background }]}>
         <View style={styles.emptyContainer}>
@@ -82,7 +122,7 @@ export default function AdminDashboardScreen() {
               {stats.total}
             </Text>
             <Text style={[styles.kpiLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-              Total de Reportes
+              Total
             </Text>
           </View>
 
@@ -97,20 +137,6 @@ export default function AdminDashboardScreen() {
               Pendentes
             </Text>
           </View>
-        </View>
-
-        <View style={styles.kpiRow}>
-          <View style={[styles.kpiCard, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
-            <View style={[styles.kpiIcon, { backgroundColor: `${theme.colors.info}20` }]}>
-              <MaterialIcons name="hourglass-empty" size={24} color={theme.colors.info} />
-            </View>
-            <Text style={[styles.kpiValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-              {stats.em_analise}
-            </Text>
-            <Text style={[styles.kpiLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-              Em Análise
-            </Text>
-          </View>
 
           <View style={[styles.kpiCard, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
             <View style={[styles.kpiIcon, { backgroundColor: `${theme.colors.success}20` }]}>
@@ -120,111 +146,128 @@ export default function AdminDashboardScreen() {
               {resolutionRate}%
             </Text>
             <Text style={[styles.kpiLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-              Taxa de Resolução
+              Resolução
             </Text>
           </View>
         </View>
 
-        {/* Category Breakdown */}
+        {/* Report Management List */}
         <View style={[styles.section, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
           <Text style={[styles.sectionTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-            Por Categoria
+            Gerenciar Reportes Recentes
           </Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <MaterialIcons name="warning" size={20} color={theme.colors.buraco} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.byCategory.buraco}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Buracos
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <MaterialIcons name="report-problem" size={20} color={theme.colors.perigo} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.byCategory.perigo}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Perigos
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <MaterialIcons name="report" size={20} color={theme.colors.denuncia} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.byCategory.denuncia}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Denúncias
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Severity Breakdown */}
-        <View style={[styles.section, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-            Por Severidade
-          </Text>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <MaterialIcons name="keyboard-arrow-down" size={20} color={theme.colors.baixa} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.bySeverity.baixa}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Baixa
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <MaterialIcons name="remove" size={20} color={theme.colors.media} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.bySeverity.media}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Média
-              </Text>
-            </View>
-            <View style={styles.statItem}>
-              <MaterialIcons name="keyboard-arrow-up" size={20} color={theme.colors.alta} />
-              <Text style={[styles.statValue, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-                {stats.bySeverity.alta}
-              </Text>
-              <Text style={[styles.statLabel, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                Alta
-              </Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Quick Actions */}
-        <View style={[styles.section, theme.shadows.md, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
-          <Text style={[styles.sectionTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
-            Ações Rápidas
-          </Text>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="download" size={20} color={theme.colors.primary} />
-            <Text style={[styles.actionButtonText, { color: theme.colors.primary }]}>
-              Exportar Relatório CSV
-            </Text>
-            <MaterialIcons name="chevron-right" size={20} color={theme.colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="analytics" size={20} color={theme.colors.primary} />
-            <Text style={[styles.actionButtonText, { color: theme.colors.primary }]}>
-              Ver Analytics Detalhado
-            </Text>
-            <MaterialIcons name="chevron-right" size={20} color={theme.colors.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <MaterialIcons name="people" size={20} color={theme.colors.primary} />
-            <Text style={[styles.actionButtonText, { color: theme.colors.primary }]}>
-              Gerenciar Técnicos
-            </Text>
-            <MaterialIcons name="chevron-right" size={20} color={theme.colors.primary} />
-          </TouchableOpacity>
+          {reports.slice(0, 10).map((report) => (
+            <TouchableOpacity
+              key={report.id}
+              style={styles.reportItem}
+              onPress={() => handleEditReport(report)}
+            >
+              <View style={styles.reportInfo}>
+                <Text style={[styles.reportTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]} numberOfLines={1}>
+                  {report.title}
+                </Text>
+                <Text style={[styles.reportSubtitle, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
+                  {report.category} • {report.status}
+                </Text>
+              </View>
+              <MaterialIcons name="edit" size={20} color={theme.colors.primary} />
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
+
+      {/* Edit Modal */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: isDark ? theme.colors.surfaceDark : theme.colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>
+              Editar Reporte
+            </Text>
+
+            <Text style={[styles.label, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>Status</Text>
+            <View style={styles.optionsRow}>
+              {['pendente', 'em_analise', 'resolvido'].map((status) => (
+                <TouchableOpacity
+                  key={status}
+                  style={[
+                    styles.optionButton,
+                    editStatus === status && styles.optionButtonActive,
+                    { borderColor: editStatus === status ? theme.colors.primary : theme.colors.border }
+                  ]}
+                  onPress={() => setEditStatus(status)}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    { color: editStatus === status ? theme.colors.primary : (isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary) }
+                  ]}>
+                    {status.replace('_', ' ').toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>Departamento</Text>
+            <View style={styles.optionsRow}>
+              {['obras', 'defesa_civil', 'gcm'].map((dept) => (
+                <TouchableOpacity
+                  key={dept}
+                  style={[
+                    styles.optionButton,
+                    editDepartment === dept && styles.optionButtonActive,
+                    { borderColor: editDepartment === dept ? theme.colors.primary : theme.colors.border }
+                  ]}
+                  onPress={() => setEditDepartment(dept)}
+                >
+                  <Text style={[
+                    styles.optionText,
+                    { color: editDepartment === dept ? theme.colors.primary : (isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary) }
+                  ]}>
+                    {dept.replace('_', ' ').toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Text style={[styles.label, { color: isDark ? theme.colors.textDark : theme.colors.text }]}>Notas do Admin</Text>
+            <TextInput
+              style={[styles.input, {
+                backgroundColor: isDark ? theme.colors.backgroundDark : theme.colors.background,
+                color: isDark ? theme.colors.textDark : theme.colors.text
+              }]}
+              value={editNotes}
+              onChangeText={setEditNotes}
+              placeholder="Adicione notas internas..."
+              placeholderTextColor={isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary}
+              multiline
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSaveReport}
+                disabled={saving}
+              >
+                {saving ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Salvar</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -293,33 +336,6 @@ const styles = StyleSheet.create({
     ...theme.typography.h3,
     marginBottom: theme.spacing.md,
   },
-  statsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  statItem: {
-    alignItems: 'center',
-    gap: theme.spacing.xs,
-  },
-  statValue: {
-    ...theme.typography.h2,
-  },
-  statLabel: {
-    ...theme.typography.bodySmall,
-  },
-  actionButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: theme.spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-    gap: theme.spacing.sm,
-  },
-  actionButtonText: {
-    ...theme.typography.body,
-    flex: 1,
-    fontWeight: '500',
-  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -330,5 +346,94 @@ const styles = StyleSheet.create({
   emptyText: {
     ...theme.typography.body,
     textAlign: 'center',
+  },
+  reportItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: theme.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.colors.border,
+  },
+  reportInfo: {
+    flex: 1,
+  },
+  reportTitle: {
+    ...theme.typography.body,
+    fontWeight: '600',
+  },
+  reportSubtitle: {
+    ...theme.typography.bodySmall,
+    marginTop: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    padding: theme.spacing.md,
+  },
+  modalContent: {
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.lg,
+  },
+  modalTitle: {
+    ...theme.typography.h2,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+  },
+  label: {
+    ...theme.typography.h3,
+    marginBottom: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: theme.spacing.sm,
+  },
+  optionButton: {
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.full,
+    borderWidth: 1,
+  },
+  optionButtonActive: {
+    backgroundColor: `${theme.colors.primary}10`,
+  },
+  optionText: {
+    ...theme.typography.bodySmall,
+    fontWeight: '600',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: theme.spacing.md,
+    marginTop: theme.spacing.xl,
+  },
+  modalButton: {
+    flex: 1,
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.error,
+  },
+  saveButton: {
+    backgroundColor: theme.colors.primary,
+  },
+  cancelButtonText: {
+    color: 'white',
+    fontWeight: '600',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: '600',
   },
 });

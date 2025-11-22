@@ -22,9 +22,9 @@ export default function MapScreen() {
 
     const [selectedCategory, setSelectedCategory] = useState<ReportCategory | 'all'>('all');
 
-    const filteredReports = selectedCategory === 'all'
-        ? reports
-        : reports.filter(r => r.category === selectedCategory);
+    const filteredReports = reports
+        .filter(r => r.category !== 'denuncia') // Security: Hide crime reports from public map
+        .filter(r => selectedCategory === 'all' ? true : r.category === selectedCategory);
 
     const getMarkerColor = (report: Report) => {
         if (report.status === 'resolvido') return theme.colors.success;
@@ -39,7 +39,7 @@ export default function MapScreen() {
                         Mapa de Reportes
                     </Text>
                     <Text style={[styles.headerSubtitle, { color: isDark ? theme.colors.textSecondaryDark : theme.colors.textSecondary }]}>
-                        {filteredReports.length} reportes ativos
+                        {filteredReports.length} reportes visíveis
                     </Text>
                     <Text style={[styles.webNotice, { color: theme.colors.warning }]}>
                         📱 Visualização de mapa disponível apenas no app mobile
@@ -100,22 +100,6 @@ export default function MapScreen() {
                         name="report-problem"
                         size={20}
                         color={selectedCategory === 'perigo' ? theme.colors.surface : theme.colors.perigo}
-                    />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    style={[
-                        styles.filterButton,
-                        theme.shadows.md,
-                        selectedCategory === 'denuncia' && styles.filterButtonActive,
-                        { backgroundColor: selectedCategory === 'denuncia' ? theme.colors.denuncia : (isDark ? theme.colors.surfaceDark : theme.colors.surface) }
-                    ]}
-                    onPress={() => setSelectedCategory('denuncia')}
-                >
-                    <MaterialIcons
-                        name="report"
-                        size={20}
-                        color={selectedCategory === 'denuncia' ? theme.colors.surface : theme.colors.denuncia}
                     />
                 </TouchableOpacity>
             </View>
