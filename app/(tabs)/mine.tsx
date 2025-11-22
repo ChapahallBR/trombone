@@ -16,7 +16,7 @@ export default function MyReportsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { reports } = useReports();
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   const [filterStatus, setFilterStatus] = useState<ReportStatus | 'all'>('all');
 
@@ -71,8 +71,21 @@ export default function MyReportsScreen() {
         style={[styles.header, { paddingTop: insets.top }]}
       >
         <View style={styles.headerContent}>
-          <Text style={styles.title}>Meus Reportes</Text>
-          <Text style={styles.subtitle}>{myReports.length} {myReports.length === 1 ? 'reporte' : 'reportes'} enviados</Text>
+          <View style={styles.headerRow}>
+            <View>
+              <Text style={styles.title}>Meus Reportes</Text>
+              <Text style={styles.subtitle}>{myReports.length} {myReports.length === 1 ? 'reporte' : 'reportes'} enviados</Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => {
+                signOut();
+                router.replace('/login');
+              }}
+              style={styles.logoutButton}
+            >
+              <MaterialIcons name="logout" size={24} color={theme.colors.surface} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.filterContainer}>
@@ -144,6 +157,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.md,
     paddingTop: theme.spacing.md,
     marginBottom: theme.spacing.md,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logoutButton: {
+    padding: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: theme.borderRadius.full,
   },
   title: {
     ...theme.typography.h1,
